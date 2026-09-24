@@ -1,40 +1,38 @@
+import { getAuthUserData } from "./auth-reducer";
+import { BaseThunkType, InferActionsTypes } from "./redux-store";
 
-import { getAuthtUsersdata } from "./auth-reducer";
-
-const INITIALIZED_SUCCESS = "SET_INITIALIZED";
-
-export type InitialStateType = {
-  initialized: boolean
-}
-
-let initialState: InitialStateType = {
-  initialized: false
+const initialState = {
+  initialized: false,
+  globalError: null as string | null,
 };
 
-const appReducer = (state = initialState, action: any): InitialStateType => {
+export type InitialStateType = typeof initialState;
+type ActionsType = InferActionsTypes<typeof actions>;
+
+const appReducer = (state = initialState, action: ActionsType): InitialStateType => {
   switch (action.type) {
-    case INITIALIZED_SUCCESS:
-      return {
-        ...state,
-        initialized: true,
-      };
+    case "SN/APP/INITIALIZED_SUCCESS":
+      return { ...state, initialized: true };
+    case "SN/APP/SET_GLOBAL_ERROR":
+      return { ...state, globalError: action.error };
     default:
       return state;
   }
 };
 
-type InitializedSuccessActionType = {
-  type: typeof INITIALIZED_SUCCESS
-}
-
-export const initializedSuccess = ():InitializedSuccessActionType => ({
-  type: INITIALIZED_SUCCESS,
-});
-
-export const initializeApp = () => (dispatch:any) => {
-  let promise = dispatch(getAuthtUsersdata());
-  promise.then(() => {
-    dispatch(initializedSuccess());
-  });
+export const actions = {
+  initializedSuccess: () => ({ type: "SN/APP/INITIALIZED_SUCCESS" } as const),
+  setGlobalError: (error: string | null) => ({ type: "SN/APP/SET_GLOBAL_ERROR", error } as const),
 };
+
+export const initializeApp = (): BaseThunkType<ActionsType> => async (dispatch) => {
+  try {
+    await dispatch(getAuthUserData());
+  } catch (e) {
+    // Навіть якщо сервер недоступний — показуємо застосунок, а не вічний прелоадер
+    dispatch(actions.setGlobalError("Не вдалося з'єднатися з сервером"));
+  }
+  dispatch(actions.initializedSuccess());
+};
+
 export default appReducer;

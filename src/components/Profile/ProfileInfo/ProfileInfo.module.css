@@ -1,16 +1,39 @@
-.img {
-    height: 200px;
-}
-
 .descriptionBlock {
-    padding: 20px;
+  padding: 10px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
-.mainFoto {
-    max-width: 200px;
-    border-radius: 50%;
+.photoBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.mainPhoto {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.uploadLabel {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: underline;
+}
+
+.info {
+  flex: 1;
+  min-width: 250px;
 }
 
 .contact {
-    padding-left: 10px;
+  padding-left: 10px;
+}
+
+.editButton {
+  margin-top: 10px;
 }

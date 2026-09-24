@@ -1,38 +1,42 @@
-import React, { useEffect, useState, ChangeEvent, FC } from "react";
+import React, { ChangeEvent, FC, KeyboardEvent, useEffect, useState } from "react";
 
 type PropsType = {
   status: string
   updateStatus: (newStatus: string) => void
-  editMode: boolean
-}
+  isOwner?: boolean
+};
 
-
-const ProfileStatusHook: FC <PropsType> = (props) => {
-  let [editMode, setEditMode] = useState(false);
-  let [status, setStatus] = useState(props.status);
+const ProfileStatusHook: FC<PropsType> = ({ status: propsStatus, updateStatus, isOwner = true }) => {
+  const [editMode, setEditMode] = useState(false);
+  const [status, setStatus] = useState(propsStatus);
 
   useEffect(() => {
-    setStatus(props.status);
-  }, [props.status]);
+    setStatus(propsStatus);
+  }, [propsStatus]);
 
   const activateEditMode = () => {
-    setEditMode(true);
+    if (isOwner) setEditMode(true);
   };
   const deactivateEditMode = () => {
     setEditMode(false);
-    props.updateStatus(status);
+    if (status !== propsStatus) {
+      updateStatus(status);
+    }
   };
   const onStatusChange = (e: ChangeEvent<HTMLInputElement>) => {
     setStatus(e.currentTarget.value);
+  };
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") deactivateEditMode();
   };
 
   return (
     <div>
       {!editMode && (
         <div>
-          <b>Status: </b>{" "}
-          <span onDoubleClick={activateEditMode}>
-            {props.status || "-------"}
+          <b>Status: </b>
+          <span onDoubleClick={activateEditMode} title={isOwner ? "Двічі клацніть, щоб змінити" : undefined}>
+            {propsStatus || "-------"}
           </span>
         </div>
       )}
@@ -41,12 +45,15 @@ const ProfileStatusHook: FC <PropsType> = (props) => {
           <input
             onChange={onStatusChange}
             onBlur={deactivateEditMode}
+            onKeyDown={onKeyDown}
             autoFocus={true}
             value={status}
+            maxLength={300}
           />
         </div>
       )}
     </div>
   );
 };
+
 export default ProfileStatusHook;

@@ -1,0 +1,9 @@
+export const DIALOGS = "/dialogs";
+export const PROFILE = "/profile";
+export const PROFILE_ROUTE = "/profile/:userId?";
+export const NEWS = "/news";
+export const MUSIC = "/music";
+export const SETTINGS = "/settings";
+export const FINDUSERS = "/users";
+export const CHAT = "/chat";
+export const LOGIN = "/login";

@@ -3,6 +3,8 @@
 }
 
 .pageNumber {
+    cursor: pointer;
+    margin: 0 2px;
     padding: 2px;
     border: 1px solid grey;
 }
