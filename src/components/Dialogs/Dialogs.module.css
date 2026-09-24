@@ -1,13 +1,25 @@
 .dialogs {
-    display: grid;
-    grid-template-columns: 2fr 10fr;
+  display: grid;
+  grid-template-columns: 2fr 10fr;
+  padding: 10px;
 }
 
-.dialog {
-    text-decoration: none;
-    color: rgb(240, 98, 98);
+.message {
+  background: white;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin: 6px 0;
+  width: fit-content;
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .messages {
-    padding: 10px;
+  padding: 10px;
+}
+
+@media (max-width: 700px) {
+  .dialogs {
+    grid-template-columns: 1fr;
+  }
 }

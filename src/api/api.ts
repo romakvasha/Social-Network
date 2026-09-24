@@ -1,82 +1,119 @@
-import axios, {AxiosResponse} from "axios";
-import {ProfileType} from '../types/types';
+import axios from "axios";
+import { PhotosType, ProfileType, UserType } from "../types/types";
 
-const instance = axios.create({
+export const instance = axios.create({
   withCredentials: true,
   baseURL: "https://social-network.samuraijs.com/api/1.0/",
   headers: { "API-KEY": "c8a462de-b11f-4b2e-be51-ab003e93d29e" },
 });
 
+export enum ResultCodes {
+  Success = 0,
+  Error = 1,
+}
+
+export enum ResultCodeForCaptcha {
+  CaptchaIsRequired = 10,
+}
+
+export type APIResponseType<D = {}, RC = ResultCodes> = {
+  data: D
+  messages: Array<string>
+  resultCode: RC
+}
+
+export type GetItemsType = {
+  items: Array<UserType>
+  totalCount: number
+  error: string | null
+}
+
+export type UsersFilterType = {
+  term: string
+  friend: null | boolean
+}
+
 export const usersAPI = {
-  getUsers(currentPage = 1, pageSize = 5) {
-    return instance
-      .get(`users?page=${currentPage}&count=${pageSize}`, {})
-      .then((response) => {
-        return response.data;
-      });
+  getUsers(currentPage = 1, pageSize = 10, filter: UsersFilterType = { term: "", friend: null }) {
+    const params = new URLSearchParams({
+      page: String(currentPage),
+      count: String(pageSize),
+    });
+    if (filter.term) params.append("term", filter.term);
+    if (filter.friend !== null) params.append("friend", String(filter.friend));
+    return instance.get<GetItemsType>(`users?${params}`).then((res) => res.data);
   },
   follow(userId: number) {
-    return instance.post(`follow/${userId}`);
+    return instance.post<APIResponseType>(`follow/${userId}`).then((res) => res.data);
   },
   unfollow(userId: number) {
-    return instance.delete(`follow/${userId}`);
-  },
-  getProfile(userId: number) {
-    return profileAPI.getProfile(userId);
-  },
-  pageNumber(pageNumber: number, pageSize: number) {
-    instance.get(`users?page=${pageNumber}&count=${pageSize}`);
+    return instance.delete<APIResponseType>(`follow/${userId}`).then((res) => res.data);
   },
 };
 
-type MeResponseType = {
-  data: {
-      id: number
-      email: string
-      login: string
-  }
-  messages: Array<string>
+type MeResponseDataType = {
+  id: number
+  email: string
+  login: string
 }
 
-type LoginResponseType = {
-  data: {
-      userId: number
-  }
-  messages: Array<string>
+type LoginResponseDataType = {
+  userId: number
 }
 
 export const authAPI = {
   me() {
-    return instance.get<MeResponseType>(`auth/me`);
+    return instance.get<APIResponseType<MeResponseDataType>>(`auth/me`).then((res) => res.data);
   },
-  login(email: string, password: string, rememberMe = false) {
-    return instance.post<LoginResponseType>(`auth/login`, { email, password, rememberMe });
+  login(email: string, password: string, rememberMe = false, captcha: string | null = null) {
+    return instance
+      .post<APIResponseType<LoginResponseDataType, ResultCodes | ResultCodeForCaptcha>>(`auth/login`, {
+        email,
+        password,
+        rememberMe,
+        captcha,
+      })
+      .then((res) => res.data);
   },
   logout() {
-    return instance.delete(`auth/login`);
+    return instance.delete<APIResponseType>(`auth/login`).then((res) => res.data);
   },
 };
 
+type GetCaptchaUrlResponseType = {
+  url: string
+}
+
+export const securityAPI = {
+  getCaptchaUrl() {
+    return instance.get<GetCaptchaUrlResponseType>(`security/get-captcha-url`).then((res) => res.data);
+  },
+};
+
+type SavePhotoResponseDataType = {
+  photos: PhotosType
+}
+
 export const profileAPI = {
   getProfile(userId: number) {
-    return instance.get(`profile/` + userId);
+    return instance.get<ProfileType>(`profile/${userId}`).then((res) => res.data);
   },
   getStatus(userId: number) {
-    return instance.get(`profile/status/` + userId);
+    return instance.get<string>(`profile/status/${userId}`).then((res) => res.data);
   },
   updateStatus(status: string) {
-    return instance.put(`profile/status/`, { status: status });
+    return instance.put<APIResponseType>(`profile/status`, { status }).then((res) => res.data);
   },
-  savePhoto(photoFile: any) {
+  savePhoto(photoFile: File) {
     const formData = new FormData();
     formData.append("image", photoFile);
-    return instance.put(`profile/photo`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    return instance
+      .put<APIResponseType<SavePhotoResponseDataType>>(`profile/photo`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => res.data);
   },
   saveProfile(profile: ProfileType) {
-    return instance.put(`profile`, profile);
+    return instance.put<APIResponseType>(`profile`, profile).then((res) => res.data);
   },
 };
